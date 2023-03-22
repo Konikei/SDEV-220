@@ -1,7 +1,7 @@
 #https://www.youtube.com/watch?v=qbLc5a9jdXo
-from flask import Flask
-app = Flask(__name__)
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
+app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 db = SQLAlchemy(app)
@@ -23,11 +23,18 @@ class Book(db.Model):
     def __repr__(self):
         return f"{self.id} - {self.book_name} - {self.Author} - {self.publisher}"
 
-@app.route('/')
-def index():
-    return 'Hello!'
+@app.route('/books')
+def get_books():
+    books = Book.query.all()
+    output = []
+    for book in books:
+        book_data = {'book_name': book.book_name, 'author': book.Author, 'publisher': book.publisher}
+        output.append(book_data)
+    return {"books": output}
 
-@app.route('/drinks')
-def get_drinks():
-    
-    return {"drinks": "drink data"}
+@app.route('/books/add', methods=['POST'])
+def add_book():
+    book = Book(book_name=request.json['book_name'], Author=request.json['author'], publisher=request.json['publisher'])
+    db.session.add(book)
+    db.session.commit()
+    return {'id': book.id}
