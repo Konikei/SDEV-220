@@ -32,9 +32,23 @@ def get_books():
         output.append(book_data)
     return {"books": output}
 
+@app.route('/books/<id>')
+def get_book(id):
+    book = Book.query.get_or_404(id)
+    return {"name": book.book_name, 'author': book.Author, 'publisher': book.publisher}
+
 @app.route('/books/add', methods=['POST'])
 def add_book():
     book = Book(book_name=request.json['book_name'], Author=request.json['author'], publisher=request.json['publisher'])
     db.session.add(book)
     db.session.commit()
     return {'id': book.id}
+
+@app.route('/books/<id>', methods=['DELETE'])
+def delete_book(id):
+    book = Book.query.get(id)
+    if book is None:
+        return {"error": "not found"}
+    db.session.delete(book)
+    db.session.commit()
+    return {"message": "Hakai"}
